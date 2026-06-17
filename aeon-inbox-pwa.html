@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="AEON Mail" />
+<meta name="theme-color" content="#1a1a2e" />
+<title>AEON Mail – Inbox</title>
+
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%231a1a2e'/%3E%3Ctext y='.9em' font-size='60' x='50%25' text-anchor='middle' fill='white'%3E✉%3C/text%3E%3C/svg%3E" />
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css" />
+
+<style>
+  :root {
+    --navy: #1a1a2e;
+    --navy-mid: #16213e;
+    --accent: #4f8ef7;
+    --accent-light: #dbeafe;
+    --success: #34d399;
+    --warning: #fbbf24;
+    --danger: #f87171;
+    --bg: #f2f2f7;
+    --surface: #ffffff;
+    --surface2: #f2f2f7;
+    --border: rgba(0,0,0,0.10);
+    --text: #1c1c1e;
+    --text2: #6c6c70;
+    --text3: #aeaeb2;
+    --safe-top: env(safe-area-inset-top, 44px);
+    --safe-bottom: env(safe-area-inset-bottom, 20px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #000000;
+      --surface: #1c1c1e;
+      --surface2: #2c2c2e;
+      --border: rgba(255,255,255,0.12);
+      --text: #ffffff;
+      --text2: #aeaeb2;
+      --text3: #636366;
+      --accent-light: #1e3a5f;
+    }
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow: hidden; font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif; background: var(--bg); color: var(--text); }
+
+  /* App shell */
+  .app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; max-width: 430px; margin: 0 auto; background: var(--bg); overflow: hidden; }
+
+  /* Header */
+  .header { background: var(--navy); padding-top: var(--safe-top); flex-shrink: 0; }
+  .status-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px 6px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9); }
+  .status-icons { display: flex; align-items: center; gap: 5px; font-size: 13px; }
+  .header-main { padding: 4px 20px 0; display: flex; justify-content: space-between; align-items: center; }
+  .header-main h1 { font-size: 28px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
+  .header-actions { display: flex; gap: 18px; }
+  .header-actions button { background: none; border: none; color: rgba(255,255,255,0.85); font-size: 22px; cursor: pointer; padding: 4px; line-height: 1; }
+  .account-badge { margin: 6px 20px 0; display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.1); border-radius: 20px; padding: 4px 12px; }
+  .account-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); flex-shrink: 0; }
+  .account-badge span { font-size: 12px; color: rgba(255,255,255,0.75); }
+
+  /* Stats */
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 14px 16px 16px; background: var(--navy); }
+  .stat { background: rgba(255,255,255,0.1); border-radius: 14px; padding: 12px 10px; text-align: center; }
+  .stat .num { font-size: 24px; font-weight: 700; color: #fff; line-height: 1; }
+  .stat .num.blue { color: #60a5fa; }
+  .stat .num.green { color: var(--success); }
+  .stat .lbl { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 4px; }
+
+  /* Search */
+  .search-wrap { padding: 10px 16px; background: var(--surface); border-bottom: 0.5px solid var(--border); flex-shrink: 0; }
+  .search-inner { background: var(--surface2); border-radius: 12px; padding: 9px 14px; display: flex; align-items: center; gap: 8px; }
+  .search-inner i { font-size: 16px; color: var(--text3); }
+  .search-inner input { flex: 1; border: none; background: transparent; font-size: 16px; color: var(--text); outline: none; }
+  .search-inner input::placeholder { color: var(--text3); }
+
+  /* Filters */
+  .filters { display: flex; gap: 8px; padding: 10px 16px; background: var(--surface); border-bottom: 0.5px solid var(--border); overflow-x: auto; scrollbar-width: none; flex-shrink: 0; }
+  .filters::-webkit-scrollbar { display: none; }
+  .filter-btn { flex-shrink: 0; padding: 7px 16px; border-radius: 20px; font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: var(--surface2); color: var(--text2); transition: all 0.15s; }
+  .filter-btn.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+
+  /* Section label */
+  .section-lbl { padding: 8px 16px; font-size: 12px; font-weight: 600; color: var(--text2); background: var(--surface2); border-bottom: 0.5px solid var(--border); text-transform: uppercase; letter-spacing: 0.4px; flex-shrink: 0; }
+
+  /* Email list */
+  .email-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background: var(--surface); }
+
+  /* Email item */
+  .email-item { display: flex; gap: 12px; padding: 14px 16px; border-bottom: 0.5px solid var(--border); cursor: pointer; transition: background 0.1s; background: var(--surface); position: relative; }
+  .email-item:active { background: var(--surface2); }
+  .email-item.read { background: var(--surface2); }
+  .email-item.unread { background: var(--surface); }
+
+  /* Swipe hint strip */
+  .email-item.unread::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); border-radius: 0 2px 2px 0; }
+
+  /* Avatar */
+  .avatar { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; flex-shrink: 0; }
+  .av-blue   { background: #dbeafe; color: #1e40af; }
+  .av-green  { background: #d1fae5; color: #065f46; }
+  .av-amber  { background: #fef3c7; color: #92400e; }
+  .av-purple { background: #ede9fe; color: #5b21b6; }
+  .av-coral  { background: #fee2e2; color: #991b1b; }
+  .av-teal   { background: #ccfbf1; color: #115e59; }
+  @media (prefers-color-scheme: dark) {
+    .av-blue   { background: #1e3a5f; color: #93c5fd; }
+    .av-green  { background: #064e3b; color: #6ee7b7; }
+    .av-amber  { background: #451a03; color: #fcd34d; }
+    .av-purple { background: #3b0764; color: #c4b5fd; }
+    .av-coral  { background: #450a0a; color: #fca5a5; }
+    .av-teal   { background: #042f2e; color: #5eead4; }
+  }
+
+  /* Email content */
+  .email-content { flex: 1; min-width: 0; }
+  .email-row1 { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; }
+  .sender-name { font-size: 15px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 210px; }
+  .email-item.read .sender-name { font-weight: 400; color: var(--text2); }
+  .email-time { font-size: 12px; color: var(--text3); flex-shrink: 0; padding-left: 8px; }
+  .email-subject { font-size: 14px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+  .email-item.read .email-subject { font-weight: 400; color: var(--text2); }
+  .email-preview { font-size: 13px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .email-footer { display: flex; align-items: center; gap: 6px; margin-top: 5px; }
+  .unread-pill { background: var(--accent); color: white; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 10px; }
+  .attach-badge { display: flex; align-items: center; gap: 3px; font-size: 11px; color: var(--text3); }
+  .attach-badge i { font-size: 13px; }
+
+  /* Empty state */
+  .empty-state { padding: 60px 20px; text-align: center; color: var(--text3); }
+  .empty-state i { font-size: 48px; display: block; margin-bottom: 12px; }
+  .empty-state p { font-size: 15px; }
+
+  /* Bottom nav */
+  .bottom-nav { background: var(--surface); border-top: 0.5px solid var(--border); display: flex; justify-content: space-around; padding: 10px 0; padding-bottom: max(10px, var(--safe-bottom)); flex-shrink: 0; }
+  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; padding: 2px 16px; position: relative; }
+  .nav-item i { font-size: 24px; color: var(--text3); }
+  .nav-item.active i { color: var(--navy); }
+  .nav-item .nav-label { font-size: 10px; color: var(--text3); font-weight: 500; }
+  .nav-item.active .nav-label { color: var(--navy); }
+  .nav-badge { position: absolute; top: -2px; right: 8px; background: var(--danger); color: white; font-size: 10px; font-weight: 700; min-width: 18px; height: 18px; border-radius: 9px; display: flex; align-items: center; justify-content: center; padding: 0 4px; border: 2px solid var(--surface); }
+
+  /* FAB */
+  .fab { position: fixed; bottom: calc(80px + var(--safe-bottom)); right: 20px; width: 56px; height: 56px; background: var(--navy); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; box-shadow: 0 4px 20px rgba(26,26,46,0.35); z-index: 10; }
+  .fab i { font-size: 24px; color: white; }
+
+  /* Detail view */
+  .detail-view { position: fixed; inset: 0; background: var(--surface); z-index: 100; display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94); }
+  .detail-view.open { transform: translateX(0); }
+  .detail-header { background: var(--navy); padding-top: var(--safe-top); padding-bottom: 12px; flex-shrink: 0; }
+  .detail-nav { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px 0; }
+  .detail-nav button { background: none; border: none; color: rgba(255,255,255,0.85); font-size: 22px; cursor: pointer; padding: 6px; display: flex; align-items: center; gap: 6px; }
+  .detail-nav .back-btn { font-size: 16px; color: rgba(255,255,255,0.9); }
+  .detail-nav .back-btn i { font-size: 20px; }
+  .detail-subject { padding: 10px 16px 0; font-size: 17px; font-weight: 600; color: #fff; line-height: 1.3; }
+  .detail-meta { padding: 8px 16px; font-size: 13px; color: rgba(255,255,255,0.6); display: flex; justify-content: space-between; }
+  .detail-body { flex: 1; overflow-y: auto; padding: 20px 16px; }
+  .detail-sender-card { display: flex; align-items: center; gap: 12px; padding: 14px; background: var(--surface2); border-radius: 14px; margin-bottom: 16px; }
+  .detail-sender-info { flex: 1; }
+  .detail-sender-info .name { font-size: 15px; font-weight: 600; color: var(--text); }
+  .detail-sender-info .email-addr { font-size: 13px; color: var(--text2); }
+  .detail-text { font-size: 15px; line-height: 1.65; color: var(--text); white-space: pre-wrap; }
+  .detail-actions { display: flex; gap: 10px; padding: 12px 16px; border-top: 0.5px solid var(--border); background: var(--surface); padding-bottom: max(12px, var(--safe-bottom)); flex-shrink: 0; }
+  .action-btn { flex: 1; padding: 13px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface2); font-size: 15px; font-weight: 500; color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .action-btn.primary { background: var(--navy); color: white; border-color: var(--navy); }
+  .attach-list { margin-top: 16px; }
+  .attach-item { display: flex; align-items: center; gap: 10px; padding: 12px; background: var(--surface2); border-radius: 12px; margin-bottom: 8px; }
+  .attach-item i { font-size: 22px; color: var(--accent); }
+  .attach-item span { font-size: 14px; color: var(--text); }
+
+  @media (prefers-color-scheme: dark) {
+    .nav-item.active i { color: #60a5fa; }
+    .nav-item.active .nav-label { color: #60a5fa; }
+    .filter-btn.active { background: #2d4a7a; border-color: #4f8ef7; color: #93c5fd; }
+    .fab { background: #2d4a7a; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Header -->
+  <div class="header">
+    <div class="status-bar">
+      <span id="clock">9:41</span>
+      <span>AEON Mail</span>
+      <span class="status-icons">
+        <i class="ti ti-wifi"></i>
+        <i class="ti ti-battery-2"></i>
+      </span>
+    </div>
+    <div class="header-main">
+      <h1>Inbox</h1>
+      <div class="header-actions">
+        <button onclick="toggleSearch()" aria-label="Search"><i class="ti ti-search"></i></button>
+        <button aria-label="Settings"><i class="ti ti-adjustments-horizontal"></i></button>
+      </div>
+    </div>
+    <div class="account-badge">
+      <div class="dot"></div>
+      <span>somkhuanv@aeonlao.com.la</span>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat">
+      <div class="num blue" id="stat-unread">18</div>
+      <div class="lbl">Unread</div>
+    </div>
+    <div class="stat">
+      <div class="num" id="stat-total">25</div>
+      <div class="lbl">Total</div>
+    </div>
+    <div class="stat">
+      <div class="num green" id="stat-attach">8</div>
+      <div class="lbl">Attachments</div>
+    </div>
+  </div>
+
+  <!-- Search -->
+  <div class="search-wrap" id="search-wrap" style="display:none;">
+    <div class="search-inner">
+      <i class="ti ti-search"></i>
+      <input type="search" id="search-input" placeholder="Search sender, subject…" oninput="renderList()" autocomplete="off" />
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters" id="filters">
+    <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+    <button class="filter-btn" onclick="setFilter('unread',this)">Unread</button>
+    <button class="filter-btn" onclick="setFilter('attach',this)">📎 Attachments</button>
+    <button class="filter-btn" onclick="setFilter('today',this)">Today</button>
+    <button class="filter-btn" onclick="setFilter('aeon',this)">AEON</button>
+    <button class="filter-btn" onclick="setFilter('external',this)">External</button>
+  </div>
+
+  <!-- Section label -->
+  <div class="section-lbl" id="section-lbl">Today · 17 June 2026</div>
+
+  <!-- Email list -->
+  <div class="email-list" id="email-list"></div>
+
+  <!-- Bottom nav -->
+  <div class="bottom-nav">
+    <div class="nav-item active">
+      <div style="position:relative">
+        <i class="ti ti-inbox"></i>
+        <span class="nav-badge" id="nav-badge">18</span>
+      </div>
+      <span class="nav-label">Inbox</span>
+    </div>
+    <div class="nav-item" onclick="alert('Sent folder — connect your Outlook account to load more folders.')">
+      <i class="ti ti-send"></i>
+      <span class="nav-label">Sent</span>
+    </div>
+    <div class="nav-item" onclick="alert('Drafts — coming soon.')">
+      <i class="ti ti-file-text"></i>
+      <span class="nav-label">Drafts</span>
+    </div>
+    <div class="nav-item" onclick="alert('Calendar — open Outlook for calendar view.')">
+      <i class="ti ti-calendar"></i>
+      <span class="nav-label">Calendar</span>
+    </div>
+    <div class="nav-item" onclick="showProfile()">
+      <i class="ti ti-user-circle"></i>
+      <span class="nav-label">Profile</span>
+    </div>
+  </div>
+</div>
+
+<!-- FAB Compose -->
+<button class="fab" aria-label="Compose" onclick="alert('Compose — open Outlook app to send new email.')">
+  <i class="ti ti-edit"></i>
+</button>
+
+<!-- Detail view -->
+<div class="detail-view" id="detail-view">
+  <div class="detail-header">
+    <div class="detail-nav">
+      <button class="back-btn" onclick="closeDetail()"><i class="ti ti-chevron-left"></i> Inbox</button>
+      <div style="display:flex;gap:4px;">
+        <button aria-label="Archive"><i class="ti ti-archive"></i></button>
+        <button aria-label="Delete"><i class="ti ti-trash"></i></button>
+        <button aria-label="More"><i class="ti ti-dots"></i></button>
+      </div>
+    </div>
+    <div class="detail-subject" id="detail-subject">Subject</div>
+    <div class="detail-meta">
+      <span id="detail-date">Jun 17, 2026</span>
+      <span id="detail-attach-info"></span>
+    </div>
+  </div>
+  <div class="detail-body" id="detail-body"></div>
+  <div class="detail-actions">
+    <button class="action-btn" onclick="replyEmail()"><i class="ti ti-arrow-back-up"></i> Reply</button>
+    <button class="action-btn" onclick="forwardEmail()"><i class="ti ti-arrow-forward-up"></i> Forward</button>
+    <button class="action-btn primary" onclick="openOutlook()"><i class="ti ti-external-link"></i> Open</button>
+  </div>
+</div>
+
+<script>
+const emails = [
+  { id:0, sender:"Viphada P.", email:"viphadap@aeonlao.com.la", subject:"Annual Vendor Evaluation Form", preview:"As part of our annual vendor evaluation process, we would like to share the Vendor Evaluation Form with your team.", body:"Dear Lailaolab Team,\n\nI hope this email finds you well.\n\nAs part of our annual vendor evaluation process, we would like to share the Vendor Evaluation Form with your team. The purpose of this evaluation is to assess the quality of services and support provided.\n\nPlease complete and return the form at your earliest convenience.\n\nBest regards,\nMs. Viphada PHIOUKHAMMANY\nIT System Dept (AEON Lao)\nContract: +85620 57061757", time:"9:50 AM", unread:true, hasAttach:true, initials:"VP", color:"av-blue", timeMs: Date.now() },
+  { id:1, sender:"Viphada P.", email:"viphadap@aeonlao.com.la", subject:"Re: System Delivery Notification: Deployment & UAT Sign-off", preview:"Please kindly find the signed UAT and Deployment document attached as referenced above.", body:"Dear Lailaolab,\n\nPlease kindly find the signed UAT and Deployment document attached as referenced above.\n\nIf you have any questions or concerns, please let me know.\n\nBest regards,\nMs. Viphada PHIOUKHAMMANY\nIT System Dept (AEON Lao)\nContract: +85620 57061757", time:"9:35 AM", unread:true, hasAttach:true, initials:"VP", color:"av-blue" },
+  { id:2, sender:"Viphada P.", email:"viphadap@aeonlao.com.la", subject:"Re: [ALSLA] M&S Remaining Tickets", preview:"I would like to confirm the Short Form API. We have discussed it with the ALMA team, and they agree with the proposed plan.", body:"Dear Ms. Joyce,\n\nGood day.\n\nI would like to confirm the Short Form API. We have discussed it with the ALMA team, and they agree with the proposed plan.\n\nBest regards,\nMs. Viphada PHIOUKHAMMANY\nIT System Dept (AEON Lao)\nContract: +85620 57061757", time:"9:08 AM", unread:true, hasAttach:false, initials:"VP", color:"av-blue" },
+  { id:3, sender:"Viphada P.", email:"viphadap@aeonlao.com.la", subject:"Re: Cashflow IT", preview:"Please kindly see the updated IT expense from June to Aug 2026 in the attached file.", body:"Dear Sis Linda,\n\nPlease kindly see the updated IT expense from June to Aug 2026 in the attached file.\n\nBest regards,\nMs. Viphada PHIOUKHAMMANY\nIT System Dept (AEON Lao)\nContract: +85620 57061757", time:"7:55 AM", unread:false, hasAttach:true, initials:"VP", color:"av-blue" },
+  { id:4, sender:"Aphisack S.", email:"aphisacks@aeonlao.com.la", subject:"Re: Action Required: VPN OS Upgrade (Approaching EOL) & Compatibility Check", preview:"Request for Joint Session: SAP (HANA/ECC6) & IPsec VPN Setup. To speed up the setup process, I would like to request a joint session.", body:"Dear Team,\n\nTo speed up the setup process, I would like to request a joint session that includes both your Application Support Team and your Network/Firewall Engineer.\n\nThis will allow us to:\n• Configure the IPsec VPN tunnel efficiently\n• Verify SAP HANA/ECC6 connectivity\n• Resolve any compatibility issues on the spot\n\nPlease advise on your availability.\n\nBest regards,\nAphisack\nIT System Dept (AEON Lao)", time:"7:50 AM", unread:true, hasAttach:false, initials:"AS", color:"av-teal" },
+  { id:5, sender:"Viphada P.", email:"viphadap@aeonlao.com.la", subject:"Training Pre-approval", preview:"Microsoft Teams meeting invite for Training Pre-approval session.", body:"Dear Team,\n\nYou are invited to the Training Pre-approval session.\n\nMicrosoft Teams Meeting\nMeeting ID: 475 186 271 216 85\nPasscode: 3Yh9gi7T\n\nPlease join on time.\n\nBest regards,\nViphada", time:"6:26 AM", unread:true, hasAttach:false, initials:"VP", color:"av-blue" },
+  { id:6, sender:"Viphada P.", email:"viphadap@aeonlao.com.la", subject:"Cashflow IT", preview:"Please kindly see the estimated IT expense from June to Aug 2026 in the attached file.", body:"Dear Sis Linda,\n\nPlease kindly see the estimated IT expense from June to Aug 2026 in the attached file.\n\nBest regards,\nMs. Viphada PHIOUKHAMMANY\nIT System Dept (AEON Lao)\nContract: +85620 57061757", time:"4:53 AM", unread:false, hasAttach:true, initials:"VP", color:"av-blue" },
+  { id:7, sender:"Facebook", email:"notification@facebookmail.com", subject:"Uey Mon joined AEON Laos.", preview:"Uey Mon (monkhama@aeonlao.com.la) joined AEON Laos as Business Manager.", body:"Uey Mon (monkhama@aeonlao.com.la) joined AEON Laos.\n\nRole: Business Manager\n\nManage notification preferences in your Facebook settings.", time:"4:40 AM", unread:true, hasAttach:false, initials:"FB", color:"av-purple" },
+  { id:8, sender:"Sonnase Y.", email:"sonnaseyp@aeonlao.com.la", subject:"ຮ້ອງຂໍ ແກ້ໄຂສັນຍາ", preview:"ພະເເນກຂາຍ ເເລະ ການຕະຫລາດ ຂໍລາຍງານບັນຫາ ສັນຍາ ຊື່ລູກຄ້າ ແສງເດດ ວົງສອນ ເລກທີ 2606-3-0271854-7", body:"ສະບາຍດີ,\n\nພະເເນກຂາຍ ເເລະ ການຕະຫລາດ ຂໍລາຍງານບັນຫາ:\nສັນຍາ ຊື່ລູກຄ້າ: ແສງເດດ ວົງສອນ\nເລກທີສັນຍາ: 2606-3-0271854-7\n\nເນື່ອງວ່າໄດ້ມີການຄີຈໍານວນເງີນຜິດ, ໄດ້ອານຸມັດ, ໄດ້ວາງບີນ ສໍາເລັດເເລ້ວ ເຮັດໃຫ້ບໍສາມາດຍົກເລີກເອກະສານໄດ້.\n\nຂໍຄວາມຊ່ວຍເຫຼືອ ດ່ວນ.\n\nຂໍຂອບໃຈ,\nSonnase", time:"4:20 AM", unread:true, hasAttach:true, initials:"SY", color:"av-amber" },
+  { id:9, sender:"Joyce C.", email:"jcabalsa@aeoncredit.com.ph", subject:"RE: [ALSLA] M&S Remaining Tickets", preview:"Kindly see attached updated excel file for reference (Schedule (3) sheet).", body:"Dear Ms. Monkham,\n\nGood day.\n\nKindly see attached updated excel file for reference (Schedule (3) sheet).\n\nMay I also inquire when can we receive an update regarding the Short Form for confirmation with ALMA side?\n\nThank you.\n\nBest Regards,\nJoyce Cabalsa\nAEON Credit Service Philippines", time:"Jun 17", unread:true, hasAttach:true, initials:"JC", color:"av-coral" },
+  { id:10, sender:"B (IT Dept)", email:"b@aeonlao.com.la", subject:"IT Internal Meeting", preview:"Microsoft Teams meeting invite — Meeting ID: 482 284 180 213 65", body:"Dear Team,\n\nYou are invited to the IT Internal Meeting.\n\nMicrosoft Teams Meeting\nMeeting ID: 482 284 180 213 65\nPasscode: hX2sn9wo\n\nPlease be on time.\n\nRegards,\nIT Department", time:"Jun 17", unread:true, hasAttach:false, initials:"IT", color:"av-teal" },
+  { id:11, sender:"Conf. Room", email:"ConferenceRoom@aeonlao.com.la", subject:"Meeting with Cyberus", preview:"Microsoft Teams meeting — Meeting ID: 479 430 492 561 0", body:"You have a meeting invite: Meeting with Cyberus\n\nMicrosoft Teams Meeting\nMeeting ID: 479 430 492 561 0\nPasscode: sD3Gh7q5\n\nPlease join on time.", time:"Jun 17", unread:true, hasAttach:false, initials:"CR", color:"av-green" },
+  { id:12, sender:"Jira AEON", email:"jira@ittaskaeon.atlassian.net", subject:"Thanaphone, you have work due in Jira", preview:"1 overdue item — WT-587: Update Morning brief (TNPH) due Jun 11", body:"Hi Thanaphone,\n\nYou have 1 overdue work item in Jira.\n\nWork items due or overdue in the last 7 days:\n• WT-587 — Update Morning brief (TNPH)\n  Due: Jun 11\n\nPlease action this item as soon as possible.", time:"Jun 17", unread:true, hasAttach:false, initials:"JR", color:"av-amber" },
+  { id:13, sender:"Monkham A.", email:"monkhama@aeonlao.com.la", subject:"RE: [ALSLA] M&S Remaining Tickets", preview:"Please send us the update excel file after our discussion as reference for UAT.", body:"Dear Ms. Joyce,\n\nPlease send us the update excel file after our discussion.\n\nWe will use it as reference to discuss with related department to prepare for UAT.\n\nThank you very much,\n\nBest Regards,\nMonkham", time:"Jun 16", unread:true, hasAttach:false, initials:"MA", color:"av-purple" },
+  { id:14, sender:"Anousith D.", email:"anousithd@aeonlao.com.la", subject:"Re: Test tool with python", preview:"Yes, that is correct. Have a good day. Kindly let us know if additional information is required.", body:"Dear Mr. Kim san,\n\nYes, that is correct.\n\nHave a good day. I hope this message finds you well.\n\nKindly let us know if any additional information is required from our side.\n\nThank you in advance for your assistance.\n\nBest Regards,\nAnousith", time:"Jun 16", unread:false, hasAttach:false, initials:"AD", color:"av-teal" },
+  { id:15, sender:"Eunchong K.", email:"eunchong_kim@aeon.co.jp", subject:"RE: Test tool with python", preview:"Thank you for answers! Can you also proceed the tool again with V8?", body:"Dear Anousith san,\n\nThank you for answers!\n\nQuestion: filepath "Check CIB 6.2023" — does this mean the CIB report saved in June 2023?\n\nAlso, can you proceed the tool again with V8?\n\nBest regards,\nEunchong Kim\nAEON Japan", time:"Jun 16", unread:false, hasAttach:false, initials:"EK", color:"av-blue" },
+  { id:16, sender:"Lamsanh D.", email:"lamsanhd@aeonlao.com.la", subject:"ເຂົ້າຮ່ວມການເຜີຍແຜ່ SSO / Rights of Social Security Membership", preview:"ພະແນກບຸກຄະລາກອນ ຂໍເຊີນ — ວັນທີ: 24 ມິຖຸນາ 2026 (ວັນພຸດ)", body:"ສະບາຍດີ ເພື່ອນຮ່ວມງານທຸກໆຄົນ,\n\nພະແນກບຸກຄະລາກອນ ຂໍເຊີນຊວນພະນັກງານທຸກຄົນເຂົ້າຮ່ວມ 'ການເຜີຍແຜ່ ກ່ຽວກັບສິດ ແລະ ຜົນປະໂຫຍດທີ່ໄດ້ຮັບຈາກການເຂົ້າເປັນສະມາຊິກຂອງປະກັນສັງຄົມ (SSO)'\n\nວັນທີ: 24 ມິຖຸນາ 2026 (ວັນພຸດ)\nສະຖານທີ: ຫ້ອງປະຊຸມ AEON Lao\n\nຂໍຂອບໃຈ,\nLamsanh", time:"Jun 16", unread:false, hasAttach:true, initials:"LD", color:"av-green" },
+  { id:17, sender:"Somkhuan V.", email:"somkhuanv@aeonlao.com.la", subject:"Re: [ALSLA] M&S Remaining Tickets", preview:"Update on Enhancement task ticket 8914 (Member Card Enhancements) — M3 to M4 issue.", body:"Dear @Joyce Cabalsa,\n\nGood day.\n\nI would like to update you on Enhancement task ticket 8914 (Member Card Enhancements).\n\nAs discussed in WhatsApp, I will focus on the M3 to M4 issue using the latest UAT release from Redmine (uploaded on 08/29/2025).\n\nBest regards,\nSomkhuan VONGSY\nIT System Dept (AEON Lao)", time:"Jun 16", unread:false, hasAttach:false, initials:"SV", color:"av-blue" },
+  { id:18, sender:"Aphisack S.", email:"aphisacks@aeonlao.com.la", subject:"Re: Request to Reschedule Standby Schedule", preview:"We are all set for Tuesday, June 16, 2026, from 19:00 to 21:00. Please exchange LINE IDs.", body:"Dear K. Nattida,\n\nThank you for confirming the schedule.\n\nWe are all set for Tuesday, June 16, 2026, from 19:00 to 21:00.\n\nTo ensure smooth and real-time coordination during the session, could we exchange direct LINE IDs?\n\nBest regards,\nAphisack\nIT System Dept (AEON Lao)", time:"Jun 16", unread:true, hasAttach:false, initials:"AS", color:"av-teal" },
+  { id:19, sender:"Viphada P.", email:"viphadap@aeonlao.com.la", subject:"Re: Request for Monthly Electrical System Report", preview:"I would like to follow up on the Monthly Electricity System Report. Could you please provide an update?", body:"Dear Best Telecom Team,\n\nI hope this email finds you well.\n\nI would like to follow up on the Monthly Electricity System Report. Could you please provide an update on its status?\n\nI look forward to your feedback.\n\nBest regards,\nMs. Viphada PHIOUKHAMMANY\nIT System Dept (AEON Lao)", time:"Jun 16", unread:true, hasAttach:false, initials:"VP", color:"av-blue" },
+  { id:20, sender:"Thavone X.", email:"thavonex@aeonlao.com.la", subject:"Monthly closing date in June 2026", preview:"Collection Department: closing date in June 2026 will be 20 June 2026.", body:"Dear Somkhuan San,\n\nCollection Department would like to inform the closing date in June 2026 will be 20 June 2026.\n\nIf you have any question, please don't hesitate to ask me.\n\nBest Regards,\nThavone", time:"Jun 16", unread:false, hasAttach:false, initials:"TX", color:"av-green" },
+  { id:21, sender:"Vathsana S.", email:"vathsanas@aeonlao.com.la", subject:"Vendor payment schedule in Jun 2026", preview:"Finance: vendor payment scheduled on 25 Jun 2026. Submit settlement by 4:00 PM on 22 Jun.", body:"Dear All,\n\nFinance department would like to inform all of you the vendor payment schedule on 25 Jun 2026.\n\nTherefore, please submit the settlement request form to us within 4:00 PM on 22 Jun 2026.\n\nWe will pay the petty cash on every Friday.\n\nThank you,\nVathsana\nFinance Department, AEON Lao", time:"Jun 16", unread:true, hasAttach:true, initials:"VS", color:"av-coral" },
+];
+
+const todayTimes = ["9:50 AM","9:35 AM","9:08 AM","7:55 AM","7:50 AM","6:26 AM","4:53 AM","4:40 AM","4:20 AM"];
+let currentFilter = 'all';
+let currentEmail = null;
+
+function updateClock() {
+  const now = new Date();
+  const h = now.getHours().toString().padStart(2,'0');
+  const m = now.getMinutes().toString().padStart(2,'0');
+  document.getElementById('clock').textContent = h + ':' + m;
+}
+updateClock();
+setInterval(updateClock, 30000);
+
+function setFilter(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderList();
+}
+
+function toggleSearch() {
+  const wrap = document.getElementById('search-wrap');
+  const visible = wrap.style.display !== 'none';
+  wrap.style.display = visible ? 'none' : 'block';
+  if (!visible) document.getElementById('search-input').focus();
+  else { document.getElementById('search-input').value = ''; renderList(); }
+}
+
+function getFiltered() {
+  const q = (document.getElementById('search-input')?.value || '').toLowerCase();
+  return emails.filter(e => {
+    if (q && !e.sender.toLowerCase().includes(q) && !e.subject.toLowerCase().includes(q) && !e.preview.toLowerCase().includes(q)) return false;
+    if (currentFilter === 'unread') return e.unread;
+    if (currentFilter === 'attach') return e.hasAttach;
+    if (currentFilter === 'today') return todayTimes.includes(e.time);
+    if (currentFilter === 'aeon') return e.email.includes('aeonlao.com.la') || e.email.includes('aeoncredit.com.ph');
+    if (currentFilter === 'external') return !e.email.includes('aeonlao.com.la') && !e.email.includes('aeoncredit.com.ph');
+    return true;
+  });
+}
+
+function renderList() {
+  const filtered = getFiltered();
+  const unread = filtered.filter(e => e.unread).length;
+  const attach = filtered.filter(e => e.hasAttach).length;
+
+  document.getElementById('stat-unread').textContent = emails.filter(e=>e.unread).length;
+  document.getElementById('stat-total').textContent = emails.length;
+  document.getElementById('stat-attach').textContent = emails.filter(e=>e.hasAttach).length;
+  document.getElementById('nav-badge').textContent = emails.filter(e=>e.unread).length;
+
+  const labels = { all:'Inbox', unread:'Unread', attach:'Attachments', today:'Today · 17 June', aeon:'AEON Team', external:'External' };
+  document.getElementById('section-lbl').textContent = (labels[currentFilter] || 'Inbox') + ' · ' + filtered.length + ' email' + (filtered.length!==1?'s':'');
+
+  const list = document.getElementById('email-list');
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="empty-state"><i class="ti ti-inbox-off"></i><p>No emails found</p></div>';
+    return;
+  }
+  list.innerHTML = filtered.map(e => `
+    <div class="email-item ${e.unread?'unread':'read'}" onclick="openEmail(${e.id})">
+      <div class="avatar ${e.color}">${e.initials}</div>
+      <div class="email-content">
+        <div class="email-row1">
+          <span class="sender-name">${e.sender}</span>
+          <span class="email-time">${e.time}</span>
+        </div>
+        <div class="email-subject">${e.subject}</div>
+        <div class="email-preview">${e.preview}</div>
+        <div class="email-footer">
+          ${e.unread ? '<span class="unread-pill">New</span>' : ''}
+          ${e.hasAttach ? '<span class="attach-badge"><i class="ti ti-paperclip"></i> Attachment</span>' : ''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openEmail(id) {
+  currentEmail = emails.find(e => e.id === id);
+  if (!currentEmail) return;
+  currentEmail.unread = false;
+
+  document.getElementById('detail-subject').textContent = currentEmail.subject;
+  document.getElementById('detail-date').textContent = currentEmail.time + ' · ' + currentEmail.email;
+  document.getElementById('detail-attach-info').textContent = currentEmail.hasAttach ? '📎 Has attachment' : '';
+
+  const body = document.getElementById('detail-body');
+  body.innerHTML = `
+    <div class="detail-sender-card">
+      <div class="avatar ${currentEmail.color}" style="width:48px;height:48px;font-size:16px;">${currentEmail.initials}</div>
+      <div class="detail-sender-info">
+        <div class="name">${currentEmail.sender}</div>
+        <div class="email-addr">${currentEmail.email}</div>
+      </div>
+    </div>
+    <div class="detail-text">${currentEmail.body}</div>
+    ${currentEmail.hasAttach ? `<div class="attach-list"><div class="attach-item"><i class="ti ti-file-text"></i><span>Attachment (tap Open to view in Outlook)</span></div></div>` : ''}
+  `;
+
+  document.getElementById('detail-view').classList.add('open');
+  renderList();
+}
+
+function closeDetail() {
+  document.getElementById('detail-view').classList.remove('open');
+  currentEmail = null;
+}
+
+function replyEmail() {
+  if (!currentEmail) return;
+  const subject = encodeURIComponent('Re: ' + currentEmail.subject);
+  const to = encodeURIComponent(currentEmail.email);
+  window.location.href = `mailto:${to}?subject=${subject}`;
+}
+
+function forwardEmail() {
+  if (!currentEmail) return;
+  const subject = encodeURIComponent('Fwd: ' + currentEmail.subject);
+  window.location.href = `mailto:?subject=${subject}&body=${encodeURIComponent(currentEmail.body)}`;
+}
+
+function openOutlook() {
+  window.open('https://outlook.office365.com/mail/inbox', '_blank');
+}
+
+function showProfile() {
+  alert('Account: somkhuanv@aeonlao.com.la\nOrganization: AEON Leasing Service (Lao) Co., Ltd.\nRole: IT System / System Maintenance Supervisor');
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
+
+renderList();
+</script>
+</body>
+</html>
